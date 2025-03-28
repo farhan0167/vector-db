@@ -5,7 +5,7 @@ from .library import Library
 
 class Database:
     def __init__(self):
-        self._lock = threading.Lock()
+        self.__lock = threading.Lock()
         self.libraries: List[Library] = []
         self.library_name_index: Dict[str, int] = {}
         
@@ -23,7 +23,7 @@ class Database:
         library: Library
     ) -> None:
         
-        with self._lock:
+        with self.__lock:
             self.libraries.append(library)
             self.library_name_index[library.name] = len(self.libraries)-1
     
@@ -32,7 +32,7 @@ class Database:
         name: str
     ) -> None:
         
-        with self._lock:
+        with self.__lock:
             del self.libraries[self.library_name_index[name]]
             del self.library_name_index[name]
             

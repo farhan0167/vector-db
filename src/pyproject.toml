@@ -3,7 +3,6 @@ name = "vector-db"
 version = "0.1.0"
 description = "A simple vector database"
 authors = ["farhan0167 <afi225@nyu.edu>"]
-readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.11"

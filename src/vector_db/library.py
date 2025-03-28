@@ -14,25 +14,45 @@ class Library:
         self.name = name
         self.metadata = metadata
         self.documents: List[Document] = []
+        # Document relted index
         self.__doc_name_index: Dict[str, int] = {}
         self.__doc_id_index: Dict[str, int] = {}
+        # Chunk related index
+        self.__chunk_id_to_doc_id: Dict[str, str] = {}
         
     def add_chunks(self, chunks: List[Chunk]):
         for chunk in chunks:
             chunk_meta = chunk.metadata
             doc = self.get_document(id=chunk_meta.doc_id)
             if not doc:
+                # TODO: If not doc then perhaps create one?
                 continue
-            doc.add_chunks([chunk])
+            doc.add_chunk(chunk)
+            self.__chunk_id_to_doc_id[chunk.id] = doc.id
     
-    def get_chunk(self, chunk_id: str):
-        pass
+    def get_chunk(self, chunk_id: str) -> Chunk:
+        doc_id = self.__chunk_id_to_doc_id[chunk_id]
+        doc = self.get_document(id=doc_id)
+        return doc.get_chunk(chunk_id)
     
-    def update_chunk(self):
-        pass
+    def update_chunk(
+        self, 
+        chunk_id: str, 
+        text: str
+    ) -> Chunk:
+        doc_id = self.__chunk_id_to_doc_id[chunk_id]
+        doc = self.get_document(id=doc_id)
+        doc._update_chunk_text(chunk_id=chunk_id, text=text)
     
-    def remove_chunk(self):
-        pass
+    def remove_chunk(self, chunk_id: str):
+        # Get the document the chunk is associated with
+        doc_id = self.__chunk_id_to_doc_id[chunk_id]
+        # Delete the chunk from the __chunk_id_to_doc
+        del self.__chunk_id_to_doc_id[chunk_id]
+        # Get the document
+        doc = self.get_document(id=doc_id)
+        # Remove the chunk from the document
+        doc._remove_chunk(chunk_id)
     
     def add_document(self, document: Document) -> Document:
         # Check if the doc already exists
@@ -41,6 +61,10 @@ class Library:
         self.documents.append(document)
         self.__doc_name_index[document.name] = len(self.documents)-1
         self.__doc_id_index[document.id] = len(self.documents)-1
+        
+        # If chunks were already added
+        if document.chunks:
+            self.add_chunks(document.chunks)
         
         return document
         
@@ -60,13 +84,18 @@ class Library:
                 return None
         return self.documents[self.__doc_name_index[name]]
         
-    def remove_document(self, name: str):
-        if not name in self.__doc_name_index:
+    def remove_document(self, id: str):
+        if not id in self.__doc_id_index:
             return
-
-        del self.__doc_id_index[ self.documents[ self.__doc_name_index[name] ].id ]
-        del self.documents[self.__doc_name_index[name]]
-        del self.__doc_name_index[name]
+        
+        doc = self.get_document(id=id)
+        for chunk in doc.get_chunks():
+            self.remove_chunk(chunk_id=chunk.id)
+        doc_index = self.__doc_id_index[id]
+        del self.__doc_id_index[id]
+        del self.__doc_name_index[doc.name]
+        del self.documents[doc_index]
+        
         
         # Recompute library name index
         self.__doc_name_index = recompute_index(

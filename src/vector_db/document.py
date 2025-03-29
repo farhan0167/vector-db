@@ -1,7 +1,6 @@
 import uuid
-from typing import List, Dict
+from typing import List, Dict, Any
 from .chunk import Chunk
-from .metadata import DocumentMetadata
 
 from utils.index import recompute_index
 
@@ -9,7 +8,7 @@ class Document:
     def __init__(
         self,
         name: str,
-        metadata: DocumentMetadata
+        metadata: Dict[str, Any]
     ):
         self.id = str(uuid.uuid4())
         self.name = name
@@ -22,7 +21,7 @@ class Document:
             id='{self.id}', 
             name='{self.name}',
             chunks={self.chunks[:1]}...{self.chunks[-1:]},
-            metadata={self.metadata.model_dump()}
+            metadata={self.metadata}
         )""".strip()
         
     def get_name(self):

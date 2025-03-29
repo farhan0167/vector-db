@@ -1,7 +1,6 @@
-from typing import List, Dict
+from typing import List, Dict, Any
 from .document import Document
 from .chunk import Chunk
-from .metadata import LibraryMetadata
 from .index import VectorSearchIndex, IndexTypes
 from utils.index import recompute_index
 
@@ -9,7 +8,7 @@ class Library:
     def __init__(
         self, 
         name: str,
-        metadata: LibraryMetadata
+        metadata: Dict[str, Any]
     ):
         self.name = name
         self.metadata = metadata
@@ -35,7 +34,8 @@ class Library:
     def add_chunks(self, chunks: List[Chunk]):
         for chunk in chunks:
             chunk_meta = chunk.metadata
-            doc = self.get_document(id=chunk_meta.doc_id)
+            doc_id = chunk_meta.get('doc_id')
+            doc = self.get_document(id=doc_id)
             if not doc:
                 # TODO: If not doc then perhaps create one?
                 continue

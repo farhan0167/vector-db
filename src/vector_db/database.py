@@ -17,8 +17,8 @@ class Database:
         self, 
         name: str
     ) -> Library:
-        library_index = self.library_name_index.get('name')
-        if not library_index:
+        library_index = self.library_name_index.get(name)
+        if library_index is None:
             raise KeyError(f'Library with name `{name}` does not exist.')
         return self.libraries[library_index]
     

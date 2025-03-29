@@ -1,0 +1,10 @@
+image:
+  repository: vector-db-image
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  type: NodePort
+  port: 8000
+
+replicaCount: 1

@@ -11,6 +11,21 @@ from exceptions import DuplicateError
 
 router = APIRouter()
 
+@router.get("/chunk", summary="Get all chunks by document from a library", tags=["Chunk"])
+async def get_chunks(document_id: str, library: Library = Depends(get_library)):
+    try:
+        doc = library.get_document(id=document_id)
+    except KeyError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e)
+        )
+    chunks = [chunk.dict() for chunk in doc.get_chunks()]
+    return JSONResponse(
+        status_code=status.HTTP_200_OK,
+        content=chunks
+    )
+
 @router.get("/chunk/{id}", summary="Get a chunk from a library", tags=["Chunk"])
 async def get_chunk(id: str, library: Library = Depends(get_library)):
     try:

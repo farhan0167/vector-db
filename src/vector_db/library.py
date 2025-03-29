@@ -3,6 +3,7 @@ from .document import Document
 from .chunk import Chunk
 from .index import VectorSearchIndex, IndexTypes
 from utils.index import recompute_index
+from exceptions import DuplicateError
 
 class Library:
     def __init__(
@@ -75,7 +76,7 @@ class Library:
     def add_document(self, document: Document) -> Document:
         # Check if the doc already exists
         if document.name in self.__doc_name_index:
-            return None
+            raise DuplicateError(f'Document with name `{document.name}` already exists.')
         self.documents.append(document)
         self.__doc_name_index[document.name] = len(self.documents)-1
         self.__doc_id_index[document.id] = len(self.documents)-1
@@ -95,11 +96,11 @@ class Library:
             raise ValueError('Only one of `name` or `id` can be provided at a time.')
         if id:
             if not id in self.__doc_id_index:
-                return None
+                raise KeyError(f'Document with id `{id}` does not exist.')
             return self.documents[self.__doc_id_index[id]]
         if name:
             if not name in self.__doc_name_index:
-                return None
+                raise KeyError(f'Document with name `{name}` does not exist.')
         return self.documents[self.__doc_name_index[name]]
         
     def remove_document(self, id: str):

@@ -7,6 +7,7 @@ from ..dependency import get_library, get_db
 from api.schemas import AddDocumentRequest
 
 from vector_db import Library, Document, Database
+from exceptions import DuplicateError
 
 router = APIRouter()
 
@@ -27,7 +28,13 @@ async def get_documents(library: Library = Depends(get_library)):
 
 @router.get("/document/{doc_id}", summary="Get a document from a library", tags=["Document"])
 async def get_document(doc_id: str, library: Library = Depends(get_library)):
-    doc = library.get_document(id=doc_id)
+    try:
+        doc = library.get_document(id=doc_id)
+    except KeyError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e)
+        )
     return JSONResponse(
         status_code=status.HTTP_200_OK,
         content=doc.dict()
@@ -35,13 +42,25 @@ async def get_document(doc_id: str, library: Library = Depends(get_library)):
     
 @router.post("/document", summary="Add a document to a library", tags=["Document"])
 async def add_document(request: AddDocumentRequest, db: Database = Depends(get_db)):
-    library = db.get_library(name=request.library_name)
-    doc = library.add_document(
-        document=Document(
-            name=request.name,
-            metadata=request.metadata.dict()
+    try:
+        library = db.get_library(name=request.library_name)
+    except KeyError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e)
         )
-    )
+    try:
+        doc = library.add_document(
+            document=Document(
+                name=request.name,
+                metadata=request.metadata.dict()
+            )
+        )
+    except DuplicateError as e:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=str(e)
+        )
     return JSONResponse(
         status_code=status.HTTP_200_OK,
         content=doc.dict()

@@ -7,9 +7,10 @@ from ..dependency import get_db, get_library as get_library_
 
 from api.schemas import (
     AddLibraryRequest,
-    AddLibraryResponse,
+    LibraryResponseMessage,
     IndexTypes as RequestIndexTypes,
-    QueryLibraryRequest
+    QueryLibraryRequest,
+    UpdateLibraryRequest
 )
 from vector_db import Database, Library
 from exceptions import DuplicateError
@@ -53,8 +54,39 @@ async def add_library(library: AddLibraryRequest, index_type: RequestIndexTypes,
     
     return JSONResponse(
         status_code=status.HTTP_201_CREATED,
-        content=AddLibraryResponse(
+        content=LibraryResponseMessage(
             message="Library added successfully"
+        ).dict()
+    )
+    
+@router.patch("/library", summary="Update a library", tags=["Library"])
+async def update_library(request: UpdateLibraryRequest, db: Database = Depends(get_db)):
+    try:
+        db.get_library(request.library_name)
+    except KeyError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e)
+        )
+    try:
+        db.update_library_name(
+            previous_name=request.library_name,
+            new_name=request.new_name
+        )
+    except KeyError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e)
+        )
+    except DuplicateError as e:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=str(e)
+        )
+    return JSONResponse(
+        status_code=status.HTTP_200_OK,
+        content=LibraryResponseMessage(
+            message="Library updated successfully"
         ).dict()
     )
 
@@ -74,7 +106,7 @@ async def remove_library(name: str, db: Database = Depends(get_db)):
         )
     return JSONResponse(
         status_code=status.HTTP_200_OK,
-        content=AddLibraryResponse(
+        content=LibraryResponseMessage(
             message="Library removed successfully"
         ).dict()
     )

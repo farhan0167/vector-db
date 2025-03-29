@@ -10,8 +10,13 @@ class AddLibraryRequest(BaseModel):
     name: str
     metadata: Optional[LibraryMetadata] = None
     
-class AddLibraryResponse(BaseModel):
+class LibraryResponseMessage(BaseModel):
     message: str
+    
+class UpdateLibraryRequest(BaseModel):
+    library_name: str
+    new_name: str
+    metadata: Optional[LibraryMetadata] = None
     
 class QueryLibraryRequest(BaseModel):
     library_name: str

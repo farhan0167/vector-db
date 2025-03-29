@@ -3,6 +3,7 @@ import time
 from typing import List, Dict
 from .library import Library
 from exceptions import DuplicateError
+from utils.index import recompute_index
 
 class Database:
     def __init__(self):
@@ -35,6 +36,32 @@ class Database:
             self.library_name_index[library.name] = len(self.libraries)-1
         return library
     
+    def update_library_name(
+        self, 
+        previous_name: str,
+        new_name: str
+    ) -> Library:
+        if previous_name not in self.library_name_index:
+            raise KeyError(f'Library with name `{previous_name}` does not exist.')
+        if new_name in self.library_name_index:
+            raise DuplicateError(f'Library with name `{new_name}` already exists. Please use a different name.')
+        
+        with self.__lock:
+            # Get reference to the library
+            library = self.libraries[self.library_name_index[previous_name]]
+            # Update name
+            library.name = new_name
+            # Update library name index with new name
+            self.library_name_index[new_name] = self.library_name_index[previous_name]
+            # Remove previous name from index
+            del self.library_name_index[previous_name]
+            # Recompute library name index
+            self.library_name_index = recompute_index(
+                iterable=self.libraries,
+                key='name'
+            )
+        return library
+    
     def remove_library(
         self, 
         name: str
@@ -48,7 +75,7 @@ class Database:
             del self.library_name_index[name]
             
             # Recompute library name index
-            self.library_name_index = {
-                library.name: i
-                for i, library in enumerate(self.libraries)
-            }
+            self.library_name_index = recompute_index(
+                iterable=self.libraries,
+                key='name'
+            )

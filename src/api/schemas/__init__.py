@@ -1,8 +1,9 @@
 from .library import (
     AddLibraryRequest,
-    AddLibraryResponse,
+    LibraryResponseMessage,
     IndexTypes,
-    QueryLibraryRequest
+    QueryLibraryRequest,
+    UpdateLibraryRequest
 )
 
 from .documents import (

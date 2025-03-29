@@ -2,6 +2,7 @@ import threading
 import time
 from typing import List, Dict
 from .library import Library
+from exceptions import DuplicateError
 
 class Database:
     def __init__(self):
@@ -16,12 +17,18 @@ class Database:
         self, 
         name: str
     ) -> Library:
-        return self.libraries[self.library_name_index[name]]
+        library_index = self.library_name_index.get('name')
+        if not library_index:
+            raise KeyError(f'Library with name `{name}` does not exist.')
+        return self.libraries[library_index]
     
     def add_library(
         self, 
         library: Library
     ) -> Library:
+        
+        if library.name in self.library_name_index:
+            raise DuplicateError(f'Library with name `{library.name}` already exists. Please use a different name.')
         
         with self.__lock:
             self.libraries.append(library)
@@ -32,6 +39,9 @@ class Database:
         self, 
         name: str
     ) -> None:
+        
+        if name not in self.library_name_index:
+            raise KeyError(f'Library with name `{name}` does not exist.')
         
         with self.__lock:
             del self.libraries[self.library_name_index[name]]

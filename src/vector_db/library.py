@@ -33,19 +33,30 @@ class Library:
         return self.index.search(query=query, k=k)
         
     def add_chunks(self, chunks: List[Chunk]):
+        chunks_added = []
         for chunk in chunks:
             chunk_meta = chunk.metadata
             doc_id = chunk_meta.get('doc_id')
-            doc = self.get_document(id=doc_id)
-            if not doc:
-                # TODO: If not doc then perhaps create one?
-                continue
-            doc.add_chunk(chunk)
+            try:
+                doc = self.get_document(id=doc_id)
+            except KeyError:
+                for added_chunk in chunks_added:
+                    self.remove_chunk(added_chunk.id)
+                raise KeyError(f'Document with id `{doc_id}` does not exist.')
+            try:
+                doc.add_chunk(chunk)
+            except DuplicateError as e:
+                for added_chunk in chunks_added:
+                    self.remove_chunk(added_chunk.id)
+                raise DuplicateError(f'Chunk with id `{chunk.id}` already exists. Removing all previous chunks already added.')
+            chunks_added.append(chunk)
             self.__chunk_id_to_doc_id[chunk.id] = doc.id
         self.index.add(chunks=chunks)
     
     def get_chunk(self, chunk_id: str) -> Chunk:
-        doc_id = self.__chunk_id_to_doc_id[chunk_id]
+        doc_id = self.__chunk_id_to_doc_id.get(chunk_id)
+        if not doc_id:
+            raise KeyError(f'Chunk with id `{chunk_id}` not found. There is no document associated with this chunk.')
         doc = self.get_document(id=doc_id)
         return doc.get_chunk(chunk_id)
     
@@ -61,13 +72,14 @@ class Library:
     
     def remove_chunk(self, chunk_id: str):
         # Get the document the chunk is associated with
-        doc_id = self.__chunk_id_to_doc_id[chunk_id]
-        # Delete the chunk from the __chunk_id_to_doc
-        del self.__chunk_id_to_doc_id[chunk_id]
-        # Get the document
-        doc = self.get_document(id=doc_id)
-        # Remove the chunk from the document
-        doc._remove_chunk(chunk_id)
+        doc_id = self.__chunk_id_to_doc_id.get(chunk_id)
+        if doc_id is not None:
+            # Delete the chunk from the __chunk_id_to_doc
+            del self.__chunk_id_to_doc_id[chunk_id]
+            # Get the document
+            doc = self.get_document(id=doc_id)
+            # Remove the chunk from the document
+            doc._remove_chunk(chunk_id)
         # TODO update vector search index
         
     def get_documents(self) -> List[Document]:

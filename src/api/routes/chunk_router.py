@@ -7,6 +7,7 @@ from ..dependency import get_library, get_db
 
 from vector_db import Library, Database, Chunk
 from api.schemas import AddChunkRequest
+from exceptions import DuplicateError
 
 router = APIRouter()
 
@@ -14,9 +15,9 @@ router = APIRouter()
 async def get_chunk(id: str, library: Library = Depends(get_library)):
     try:
         chunk = library.get_chunk(chunk_id=id)
-    except Exception as e:
+    except KeyError as e:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
+            status_code=status.HTTP_404_NOT_FOUND,
             detail=str(e)
         )
     return JSONResponse(
@@ -26,7 +27,13 @@ async def get_chunk(id: str, library: Library = Depends(get_library)):
 
 @router.post("/chunk", summary="Add chunks to a library", tags=["Chunk"])
 async def add_chunk(request: AddChunkRequest, db: Database = Depends(get_db)):
-    library = db.get_library(name=request.library_name)
+    try:
+        library = db.get_library(name=request.library_name)
+    except KeyError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e)
+        )
     chunks = []
     for chunk in request.chunks:
         chunks.append(
@@ -35,7 +42,18 @@ async def add_chunk(request: AddChunkRequest, db: Database = Depends(get_db)):
                 metadata=chunk.metadata.model_dump()
             )
         )
-    library.add_chunks(chunks=chunks)
+    try:
+        library.add_chunks(chunks=chunks)
+    except DuplicateError as e:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=str(e)
+        )
+    except KeyError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e)
+        )
     return JSONResponse(
         status_code=status.HTTP_200_OK,
         content={"message": "Chunk added to library"}

@@ -3,6 +3,7 @@ from typing import List, Dict, Any
 from .chunk import Chunk
 
 from utils.index import recompute_index
+from exceptions import DuplicateError
 
 class Document:
     def __init__(
@@ -33,9 +34,9 @@ class Document:
         return self.chunks[chunk_index]
     
     def add_chunk(self, chunk: Chunk):
-        self.chunks.append(chunk)
         if chunk.id in self.__chunk_id_index:
-            return
+            raise DuplicateError(f'Chunk with id `{chunk.id}` already exists.')
+        self.chunks.append(chunk)
         self.__chunk_id_index[chunk.id] = len(self.chunks)-1
         
     def _update_chunk_text(

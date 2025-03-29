@@ -21,11 +21,12 @@ class Database:
     def add_library(
         self, 
         library: Library
-    ) -> None:
+    ) -> Library:
         
         with self.__lock:
             self.libraries.append(library)
             self.library_name_index[library.name] = len(self.libraries)-1
+        return library
     
     def remove_library(
         self, 

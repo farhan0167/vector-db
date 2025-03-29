@@ -68,6 +68,9 @@ class Library:
         # Remove the chunk from the document
         doc._remove_chunk(chunk_id)
         # TODO update vector search index
+        
+    def get_documents(self) -> List[Document]:
+        return self.documents
     
     def add_document(self, document: Document) -> Document:
         # Check if the doc already exists
@@ -124,7 +127,8 @@ class Library:
 
     def dict(self):
         return {
-            'name': self.name
+            'name': self.name,
+            'metadata': self.metadata
         }
     
     def json(self):

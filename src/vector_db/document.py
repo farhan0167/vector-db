@@ -65,6 +65,14 @@ class Document:
     def get_chunks(self):
         return self.chunks
     
+    def dict(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "num_of_chunks": len(self.chunks),
+            "metadata": self.metadata
+        }
+    
     
     
     

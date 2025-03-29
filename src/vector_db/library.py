@@ -1,7 +1,7 @@
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Union
 from .document import Document
 from .chunk import Chunk
-from .index import VectorSearchIndex, IndexTypes
+from .index import VectorSearchIndex, IndexTypes, BaseIndex
 from utils.index import recompute_index
 from exceptions import DuplicateError
 
@@ -14,7 +14,7 @@ class Library:
         self.name = name
         self.metadata = metadata
         self.documents: List[Document] = []
-        self.index = None
+        self.index: Union[BaseIndex, None] = None
         # Document relted index
         self.__doc_name_index: Dict[str, int] = {}
         self.__doc_id_index: Dict[str, int] = {}
@@ -59,6 +59,20 @@ class Library:
             raise KeyError(f'Chunk with id `{chunk_id}` not found. There is no document associated with this chunk.')
         doc = self.get_document(id=doc_id)
         return doc.get_chunk(chunk_id)
+    
+    def get_chunks(self) -> List[Chunk]:
+        """Get all chunks from the library. If index is not built, 
+        then go over every document to get the chunks. Time complexity: O(D),
+        where D is the number of documents in the library.
+        
+        However, if the index is built, then time complexity: O(1).
+        """
+        if not self.index:
+            chunks = []
+            docs = self.get_documents()
+            for doc in docs:
+                chunks.extend(doc.get_chunks())
+        return self.index.get_chunks()
     
     def update_chunk(
         self, 

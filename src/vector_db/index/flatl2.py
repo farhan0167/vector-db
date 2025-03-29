@@ -8,7 +8,6 @@ class FlatL2Index(BaseIndex):
     def __init__(self):
         super().__init__()
         self.embeddings: List[List[float]] = []
-        self.chunks: List[Chunk] = []
         self.knn_engine = None
         
     def add(self, chunks: List[Chunk]):

@@ -1,9 +1,10 @@
+from .base import BaseIndex
 from .flatl2 import FlatL2Index
 from .types import IndexTypes
 
 class VectorSearchIndex:
     
-    def initialize_index(self, index_type: IndexTypes):
+    def initialize_index(self, index_type: IndexTypes) -> BaseIndex:
         if index_type == IndexTypes.FLATL2:
             return FlatL2Index()
         else:

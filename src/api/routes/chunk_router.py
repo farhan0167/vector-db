@@ -1,7 +1,7 @@
 import json
+from typing import Optional
 from fastapi import APIRouter, HTTPException, Depends, status
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel
 
 from ..dependency import get_library, get_db
 
@@ -11,16 +11,20 @@ from exceptions import DuplicateError
 
 router = APIRouter()
 
-@router.get("/chunk", summary="Get all chunks by document from a library", tags=["Chunk"])
-async def get_chunks(document_id: str, library: Library = Depends(get_library)):
-    try:
-        doc = library.get_document(id=document_id)
-    except KeyError as e:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=str(e)
-        )
-    chunks = [chunk.dict() for chunk in doc.get_chunks()]
+@router.get("/chunk", summary="Get all chunks from a library", tags=["Chunk"])
+async def get_chunks(document_id: Optional[str] = None, library: Library = Depends(get_library)):
+    if document_id:
+        try:
+            doc = library.get_document(id=document_id)
+            chunks_iter = doc.get_chunks()
+        except KeyError as e:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=str(e)
+            )
+    else:
+        chunks_iter = library.get_chunks()
+    chunks = [chunk.dict() for chunk in chunks_iter]
     return JSONResponse(
         status_code=status.HTTP_200_OK,
         content=chunks

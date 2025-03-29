@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 from typing import Optional
 
-from vector_db.metadata import DocumentMetadata
+from api.schemas.metadata import DocumentMetadata
 
 class AddDocumentRequest(BaseModel):
     name: str

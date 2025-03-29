@@ -5,7 +5,7 @@ from pydantic import BaseModel
 
 from ..dependency import get_library, get_db
 
-from vector_db import Library, Database, Chunk, ChunkMetadata
+from vector_db import Library, Database, Chunk
 from api.schemas import AddChunkRequest
 
 router = APIRouter()
@@ -32,11 +32,7 @@ async def add_chunk(request: AddChunkRequest, db: Database = Depends(get_db)):
         chunks.append(
             Chunk(
                 text=chunk.text,
-                metadata=ChunkMetadata(
-                    doc_id=chunk.doc_id,
-                    page_number=chunk.page_number,
-                    summary=chunk.summary
-                ).dict()
+                metadata=chunk.metadata.model_dump()
             )
         )
     library.add_chunks(chunks=chunks)

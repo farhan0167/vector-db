@@ -1,7 +1,7 @@
 from enum import Enum
 from pydantic import BaseModel
 from typing import Optional
-from vector_db.metadata import LibraryMetadata
+from api.schemas.metadata import LibraryMetadata
 
 class IndexTypes(str, Enum):
     FlatL2 = 'flatl2'

@@ -4,6 +4,7 @@ from .chunk import Chunk
 
 from utils.index import recompute_index
 from exceptions import DuplicateError
+from utils.embed import embed
 
 class Document:
     def __init__(
@@ -48,7 +49,7 @@ class Document:
         chunk = self.chunks[chunk_index]
         chunk.text = text
         if chunk.embedding:
-            pass
+            chunk.embedding = embed([chunk.text])[0]
         return chunk
             
     def _remove_chunk(self, chunk_id: str):

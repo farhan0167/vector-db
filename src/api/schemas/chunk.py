@@ -8,4 +8,7 @@ class Chunk(BaseModel):
 
 class AddChunkRequest(BaseModel):
     library_name: str
-    chunks: List[Chunk]
+    chunks: List[Chunk] 
+    
+class UpdateChunkRequest(BaseModel):
+    text: str

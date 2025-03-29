@@ -6,7 +6,7 @@ from pydantic import BaseModel
 from ..dependency import get_library, get_db
 
 from vector_db import Library, Database, Chunk
-from api.schemas import AddChunkRequest
+from api.schemas import AddChunkRequest, UpdateChunkRequest
 from exceptions import DuplicateError
 
 router = APIRouter()
@@ -58,7 +58,31 @@ async def add_chunk(request: AddChunkRequest, db: Database = Depends(get_db)):
         status_code=status.HTTP_200_OK,
         content={"message": "Chunk added to library"}
     )
+    
+@router.patch("/chunk/{id}", summary="Update a chunk text from a library", tags=["Chunk"])
+async def update_chunk(id: str, request: UpdateChunkRequest, library: Library = Depends(get_library)):
+    try:
+        library.update_chunk(chunk_id=id, text=request.text)
+    except KeyError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e)
+        )
+    return JSONResponse(
+        status_code=status.HTTP_200_OK,
+        content={"message": "Chunk updated successfully"}
+    )
 
 @router.delete("/chunk/{id}", summary="Remove a chunk from a library", tags=["Chunk"])
 async def remove_chunk(id: str, library: Library = Depends(get_library)):
-    pass
+    try:
+        library.remove_chunk(chunk_id=id)
+    except KeyError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e)
+        )
+    return JSONResponse(
+        status_code=status.HTTP_200_OK,
+        content={"message": "Chunk removed successfully"}
+    )

@@ -10,5 +10,6 @@ from .documents import (
 )
 
 from .chunk import (
-    AddChunkRequest
+    AddChunkRequest,
+    UpdateChunkRequest
 )

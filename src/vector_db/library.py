@@ -2,7 +2,7 @@ from typing import List, Dict
 from .document import Document
 from .chunk import Chunk
 from .metadata import LibraryMetadata
-
+from .index import VectorSearchIndex, IndexTypes
 from utils.index import recompute_index
 
 class Library:
@@ -14,11 +14,23 @@ class Library:
         self.name = name
         self.metadata = metadata
         self.documents: List[Document] = []
+        self.index = None
         # Document relted index
         self.__doc_name_index: Dict[str, int] = {}
         self.__doc_id_index: Dict[str, int] = {}
         # Chunk related index
         self.__chunk_id_to_doc_id: Dict[str, str] = {}
+        
+    def add_vector_search_index(self, index_type: IndexTypes):
+        self.index = VectorSearchIndex().initialize_index(
+            index_type=index_type
+        )
+        
+    def build_index(self):
+        self.index.build_index()
+        
+    def search(self, query, k):
+        return self.index.search(query=query, k=k)
         
     def add_chunks(self, chunks: List[Chunk]):
         for chunk in chunks:
@@ -29,6 +41,7 @@ class Library:
                 continue
             doc.add_chunk(chunk)
             self.__chunk_id_to_doc_id[chunk.id] = doc.id
+        self.index.add(chunks=chunks)
     
     def get_chunk(self, chunk_id: str) -> Chunk:
         doc_id = self.__chunk_id_to_doc_id[chunk_id]
@@ -43,6 +56,7 @@ class Library:
         doc_id = self.__chunk_id_to_doc_id[chunk_id]
         doc = self.get_document(id=doc_id)
         doc._update_chunk_text(chunk_id=chunk_id, text=text)
+        # TODO update vector search index
     
     def remove_chunk(self, chunk_id: str):
         # Get the document the chunk is associated with
@@ -53,6 +67,7 @@ class Library:
         doc = self.get_document(id=doc_id)
         # Remove the chunk from the document
         doc._remove_chunk(chunk_id)
+        # TODO update vector search index
     
     def add_document(self, document: Document) -> Document:
         # Check if the doc already exists

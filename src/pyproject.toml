@@ -9,6 +9,7 @@ python = "^3.11"
 fastapi = {extras = ["standard"], version = "^0.115.12"}
 uvicorn = "^0.34.0"
 pydantic = "^2.10.6"
+cohere = "^5.14.0"
 
 
 [build-system]

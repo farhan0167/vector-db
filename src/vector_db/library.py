@@ -8,7 +8,6 @@ from .index import (
     BaseVectorSearchIndex,
     CollectionsIndex
 )
-from utils.index import recompute_index
 from exceptions import DuplicateError
 
 class Library:

@@ -2,7 +2,6 @@ import uuid
 from typing import List, Dict, Any
 from .chunk import Chunk
 
-from utils.index import recompute_index
 from exceptions import DuplicateError
 from utils.embed import embed
 from .index import (

@@ -3,7 +3,6 @@ import time
 from typing import List, Dict
 from .library import Library
 from exceptions import DuplicateError
-from utils.index import recompute_index
 from .index import SearchIndex, IndexTypes, CollectionsIndex
 
 class Database:

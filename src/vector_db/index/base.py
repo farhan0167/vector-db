@@ -8,6 +8,9 @@ class BaseIndex:
     def add(self):
         pass
     
+    def remove(self):
+        pass
+    
     def search(self):
         pass
     

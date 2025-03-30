@@ -1,11 +1,15 @@
 # tests/conftest.py
 import pytest
 import requests
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 @pytest.fixture
 def base_url():
-    return "http://localhost:8000"
+    return os.getenv("PYTEST_DB_URI")
 
 @pytest.fixture
 def http_client(base_url):

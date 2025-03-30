@@ -1,10 +1,10 @@
 from typing import List
 from utils.embed import embed
 from utils.knn import KNearNeighbors
-from .base import BaseIndex
+from .base import BaseIndex, BaseVectorSearchIndex
 from ..chunk import Chunk
 
-class FlatL2Index(BaseIndex):
+class FlatL2Index(BaseVectorSearchIndex):
     def __init__(self):
         super().__init__()
         self.embeddings: List[List[float]] = []

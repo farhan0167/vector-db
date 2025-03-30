@@ -1,7 +1,13 @@
 from typing import List, Dict, Any, Union
 from .document import Document
 from .chunk import Chunk
-from .index import VectorSearchIndex, IndexTypes, BaseIndex
+from .index import (
+    SearchIndex, 
+    IndexTypes, 
+    BaseIndex, 
+    BaseVectorSearchIndex,
+    CollectionsIndex
+)
 from utils.index import recompute_index
 from exceptions import DuplicateError
 
@@ -14,15 +20,19 @@ class Library:
         self.name = name
         self.metadata = metadata
         self.documents: List[Document] = []
-        self.index: Union[BaseIndex, None] = None
+        self.index: Union[BaseVectorSearchIndex, None] = None
         # Document relted index
-        self.__doc_name_index: Dict[str, int] = {}
-        self.__doc_id_index: Dict[str, int] = {}
+        self.__doc_name_index: CollectionsIndex = SearchIndex().initialize_index(
+            index_type=IndexTypes.COLLECTIONS_INDEX
+        )
+        self.__doc_id_index: CollectionsIndex = SearchIndex().initialize_index(
+            index_type=IndexTypes.COLLECTIONS_INDEX
+        )
         # Chunk related index
         self.__chunk_id_to_doc_id: Dict[str, str] = {}
         
     def add_vector_search_index(self, index_type: IndexTypes):
-        self.index = VectorSearchIndex().initialize_index(
+        self.index = SearchIndex().initialize_index(
             index_type=index_type
         )
         
@@ -104,11 +114,11 @@ class Library:
     
     def add_document(self, document: Document) -> Document:
         # Check if the doc already exists
-        if document.name in self.__doc_name_index:
+        if document.name in self.__doc_name_index.index:
             raise DuplicateError(f'Document with name `{document.name}` already exists.')
         self.documents.append(document)
-        self.__doc_name_index[document.name] = len(self.documents)-1
-        self.__doc_id_index[document.id] = len(self.documents)-1
+        self.__doc_name_index.add(id=document.name, value=len(self.documents)-1)
+        self.__doc_id_index.add(id=document.id, value=len(self.documents)-1)
         
         # If chunks were already added
         if document.chunks:
@@ -124,35 +134,32 @@ class Library:
         if id and name:
             raise ValueError('Only one of `name` or `id` can be provided at a time.')
         if id:
-            if not id in self.__doc_id_index:
+            if not id in self.__doc_id_index.index:
                 raise KeyError(f'Document with id `{id}` does not exist.')
-            return self.documents[self.__doc_id_index[id]]
+            return self.documents[self.__doc_id_index.search(id)]
         if name:
-            if not name in self.__doc_name_index:
+            if not name in self.__doc_name_index.index:
                 raise KeyError(f'Document with name `{name}` does not exist.')
-        return self.documents[self.__doc_name_index[name]]
+        return self.documents[self.__doc_name_index.search(name)]
         
     def remove_document(self, id: str):
-        if not id in self.__doc_id_index:
-            return
+        if not id in self.__doc_id_index.index:
+            raise KeyError(f'Document with id `{id}` does not exist.')
         
         doc = self.get_document(id=id)
         for chunk in doc.get_chunks():
             self.remove_chunk(chunk_id=chunk.id)
-        doc_index = self.__doc_id_index[id]
-        del self.__doc_id_index[id]
-        del self.__doc_name_index[doc.name]
+        doc_index = self.__doc_id_index.search(id)
         del self.documents[doc_index]
-        
-        
-        # Recompute library name index
-        self.__doc_name_index = recompute_index(
+        self.__doc_id_index.remove(
+            id=doc.id,
             iterable=self.documents,
-            key='name'
+            reindex_key='id'
         )
-        self.__doc_id_index = recompute_index(
+        self.__doc_name_index.remove(
+            id=doc.name,
             iterable=self.documents,
-            key='id'
+            reindex_key='name'
         )
 
     def dict(self):

@@ -69,4 +69,14 @@ async def add_document(request: AddDocumentRequest, db: Database = Depends(get_d
 
 @router.delete("/document/{doc_id}", summary="Remove a document a library", tags=["Document"])
 async def remove_document(doc_id: str, library: Library = Depends(get_library)):
-    pass
+    try:
+        library.remove_document(id=doc_id)
+    except KeyError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e)
+        )
+    return JSONResponse(
+        status_code=status.HTTP_200_OK,
+        content={"message": "Document removed successfully"}
+    )

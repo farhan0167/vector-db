@@ -3,12 +3,12 @@ from ..chunk import Chunk
 
 class BaseIndex:
     def __init__(self):
-        self.chunks: List[Chunk] = []
-        
-    def get_chunks(self):
-        return self.chunks
+        pass
     
     def add(self):
+        pass
+    
+    def remove(self):
         pass
     
     def search(self):
@@ -16,3 +16,10 @@ class BaseIndex:
     
     def build_index(self):
         pass
+    
+class BaseVectorSearchIndex(BaseIndex):
+    def __init__(self):
+        self.chunks: List[Chunk] = []
+        
+    def get_chunks(self):
+        return self.chunks

@@ -7,7 +7,27 @@ from api.routes import (
     chunk_router
 )
 
-app = FastAPI()
+app = FastAPI(
+    title="vector-db",
+    version="0.1.0",
+    description="""
+## API Documentation for vector-db
+    """,
+    openapi_tags=[
+        {
+            "name": "Library",
+            "description": "Library related methods.",
+        },
+        {
+            "name": "Document",
+            "description": "Document related methods."
+        },
+        {
+            "name": "Chunk",
+            "description": "Chunk related methods."
+        }
+    ]
+)
 
 app.include_router(library_router.router)
 app.include_router(document_router.router)

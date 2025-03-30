@@ -12,3 +12,9 @@ class AddChunkRequest(BaseModel):
     
 class UpdateChunkRequest(BaseModel):
     text: str
+    
+class ResponseChunk(BaseModel):
+    id: str
+    text: str
+    embedding: Optional[List[float]]
+    metadata: Optional[ChunkMetadata]

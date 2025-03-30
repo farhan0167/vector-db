@@ -60,3 +60,16 @@ Make sure you have the following installed in your system:
    ```bash
    minikube service vector-db
    ```
+
+## Conceptual Guide
+
+On a high level, **vector-db** can be summarized by the following diagram:
+![high_level](./docs/assets/highlevel_diagram.png)
+
+The vector database is made up of:
+
+- **Database**: The top-level object that holds a collection of libraries. It serves as the central structure for organizing and storing all content.
+- **Library**: A library is a group of related documents. It acts as a controller for both documents and their corresponding chunks.
+- **Document**: A document represents a single piece of text (e.g., an article or report). To enable more efficient retrieval, documents are split into smaller segments called chunks. This allows the system to return only the most relevant parts, avoiding the limitations of an LLM's context window.
+- **Chunk**: Chunks are the smaller text segments derived from a document. In vector-db, each chunk is embedded individually and is the core unit returned in a retrieval query.
+- **API**: The API provides an interface for users to interact with the database, enabling operations such as storing, querying, and retrieving documents or chunks.

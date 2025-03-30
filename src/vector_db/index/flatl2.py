@@ -2,6 +2,7 @@ from typing import List
 from utils.embed import embed
 from utils.knn import KNearNeighbors
 from .base import BaseIndex, BaseVectorSearchIndex
+from .collections_index import CollectionsIndex
 from ..chunk import Chunk
 
 class FlatL2Index(BaseVectorSearchIndex):
@@ -15,6 +16,7 @@ class FlatL2Index(BaseVectorSearchIndex):
         super().__init__()
         self.embeddings: List[List[float]] = []
         self.knn_engine = None
+        self.chunks_index = CollectionsIndex()
         
     def add(self, chunks: List[Chunk]):
         for chunk in chunks:
@@ -22,6 +24,18 @@ class FlatL2Index(BaseVectorSearchIndex):
             if not chunk.embedding:
                 chunk.embedding = embed([chunk.text])[0]
             self.embeddings.append(chunk.embedding)
+            self.chunks_index.add(id=chunk.id, value=len(self.chunks)-1)
+            
+    def remove(self, chunk_id: str):
+        chunk_index = self.chunks_index.search(chunk_id)
+        del self.chunks[chunk_index]
+        del self.embeddings[chunk_index]
+        self.chunks_index.remove(id=chunk_id, iterable=self.chunks, reindex_key='id')
+        
+    def update(self, chunk_id: str, text: str):
+        chunk_index = self.chunks_index.search(chunk_id)
+        self.chunks[chunk_index].text = text
+        self.embeddings[chunk_index] = embed([text])[0]
             
     def build_index(self):
         self.knn_engine = KNearNeighbors().fit(self.embeddings)

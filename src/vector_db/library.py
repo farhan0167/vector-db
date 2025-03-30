@@ -1,3 +1,4 @@
+import threading
 from typing import List, Dict, Any, Union
 from .document import Document
 from .chunk import Chunk
@@ -27,6 +28,7 @@ class Library:
         name: str,
         metadata: Dict[str, Any]
     ):
+        self.__lock = threading.Lock()
         self.name = name
         self.metadata = metadata
         self.documents: List[Document] = []
@@ -53,25 +55,26 @@ class Library:
         return self.index.search(query=query, k=k)
         
     def add_chunks(self, chunks: List[Chunk]):
-        chunks_added = []
-        for chunk in chunks:
-            chunk_meta = chunk.metadata
-            doc_id = chunk_meta.get('doc_id')
-            try:
-                doc = self.get_document(id=doc_id)
-            except KeyError:
-                for added_chunk in chunks_added:
-                    self.remove_chunk(added_chunk.id)
-                raise KeyError(f'Document with id `{doc_id}` does not exist.')
-            try:
-                doc.add_chunk(chunk)
-            except DuplicateError as e:
-                for added_chunk in chunks_added:
-                    self.remove_chunk(added_chunk.id)
-                raise DuplicateError(f'Chunk with id `{chunk.id}` already exists. Removing all previous chunks already added.')
-            chunks_added.append(chunk)
-            self.__chunk_id_to_doc_id[chunk.id] = doc.id
-        self.index.add(chunks=chunks)
+        with self.__lock:
+            chunks_added = []
+            for chunk in chunks:
+                chunk_meta = chunk.metadata
+                doc_id = chunk_meta.get('doc_id')
+                try:
+                    doc = self.get_document(id=doc_id)
+                except KeyError:
+                    for added_chunk in chunks_added:
+                        self.remove_chunk(added_chunk.id)
+                    raise KeyError(f'Document with id `{doc_id}` does not exist.')
+                try:
+                    doc.add_chunk(chunk)
+                except DuplicateError as e:
+                    for added_chunk in chunks_added:
+                        self.remove_chunk(added_chunk.id)
+                    raise DuplicateError(f'Chunk with id `{chunk.id}` already exists. Removing all previous chunks already added.')
+                chunks_added.append(chunk)
+                self.__chunk_id_to_doc_id[chunk.id] = doc.id
+            self.index.add(chunks=chunks)
     
     def get_chunk(self, chunk_id: str) -> Chunk:
         """Get a chunk from the library. This is an O(1) operation since
@@ -98,6 +101,7 @@ class Library:
             docs = self.get_documents()
             for doc in docs:
                 chunks.extend(doc.get_chunks())
+            return chunks
         return self.index.get_chunks()
     
     def update_chunk(
@@ -106,43 +110,48 @@ class Library:
         text: str
     ) -> Chunk:
         """Update the text of a chunk and update the vector search index."""
-        doc_id = self.__chunk_id_to_doc_id.get(chunk_id)
-        if not doc_id:
-            raise KeyError(f'Chunk with id `{chunk_id}` not found. There is no document associated with this chunk.')
-        doc = self.get_document(id=doc_id)
-        doc._update_chunk_text(chunk_id=chunk_id, text=text)
-        # TODO update vector search index
+        with self.__lock:
+            doc_id = self.__chunk_id_to_doc_id.get(chunk_id)
+            if not doc_id:
+                raise KeyError(f'Chunk with id `{chunk_id}` not found. There is no document associated with this chunk.')
+            doc = self.get_document(id=doc_id)
+            doc._update_chunk_text(chunk_id=chunk_id, text=text)
+            # update vector search index
+            self.index.update(chunk_id=chunk_id, text=text)
         
     
     def remove_chunk(self, chunk_id: str):
         """Remove a chunk from the library."""
-        # Get the document the chunk is associated with
-        doc_id = self.__chunk_id_to_doc_id.get(chunk_id)
-        if not doc_id:
-            raise KeyError(f'Chunk with id `{chunk_id}` not found. There is no document associated with this chunk.')
-        # Delete the chunk from the __chunk_id_to_doc
-        del self.__chunk_id_to_doc_id[chunk_id]
-        # Get the document
-        doc = self.get_document(id=doc_id)
-        # Remove the chunk from the document
-        doc._remove_chunk(chunk_id)
-        # TODO update vector search index
+        with self.__lock:
+            # Get the document the chunk is associated with
+            doc_id = self.__chunk_id_to_doc_id.get(chunk_id)
+            if not doc_id:
+                raise KeyError(f'Chunk with id `{chunk_id}` not found. There is no document associated with this chunk.')
+            # Delete the chunk from the __chunk_id_to_doc
+            del self.__chunk_id_to_doc_id[chunk_id]
+            # Get the document
+            doc = self.get_document(id=doc_id)
+            # Remove the chunk from the document
+            doc._remove_chunk(chunk_id)
+            # update vector search index
+            self.index.remove(chunk_id=chunk_id)
         
     def get_documents(self) -> List[Document]:
         return self.documents
     
     def add_document(self, document: Document) -> Document:
         """ Add a document to the library. If the document already exists, then raise an error."""
-        # Check if the doc already exists
-        if document.name in self.__doc_name_index.index:
-            raise DuplicateError(f'Document with name `{document.name}` already exists.')
-        self.documents.append(document)
-        self.__doc_name_index.add(id=document.name, value=len(self.documents)-1)
-        self.__doc_id_index.add(id=document.id, value=len(self.documents)-1)
-        
-        # If chunks were already added
-        if document.chunks:
-            self.add_chunks(document.chunks)
+        with self.__lock:
+            # Check if the doc already exists
+            if document.name in self.__doc_name_index.index:
+                raise DuplicateError(f'Document with name `{document.name}` already exists.')
+            self.documents.append(document)
+            self.__doc_name_index.add(id=document.name, value=len(self.documents)-1)
+            self.__doc_id_index.add(id=document.id, value=len(self.documents)-1)
+            
+            # If chunks were already added
+            if document.chunks:
+                self.add_chunks(document.chunks)
         
         return document
         
@@ -169,20 +178,22 @@ class Library:
             raise KeyError(f'Document with id `{id}` does not exist.')
         
         doc = self.get_document(id=id)
-        for chunk in doc.get_chunks():
-            self.remove_chunk(chunk_id=chunk.id)
-        doc_index = self.__doc_id_index.search(id)
-        del self.documents[doc_index]
-        self.__doc_id_index.remove(
-            id=doc.id,
-            iterable=self.documents,
-            reindex_key='id'
-        )
-        self.__doc_name_index.remove(
-            id=doc.name,
-            iterable=self.documents,
-            reindex_key='name'
-        )
+        
+        with self.__lock:
+            for chunk in doc.get_chunks():
+                self.remove_chunk(chunk_id=chunk.id)
+            doc_index = self.__doc_id_index.search(id)
+            del self.documents[doc_index]
+            self.__doc_id_index.remove(
+                id=doc.id,
+                iterable=self.documents,
+                reindex_key='id'
+            )
+            self.__doc_name_index.remove(
+                id=doc.name,
+                iterable=self.documents,
+                reindex_key='name'
+            )
 
     def dict(self):
         return {

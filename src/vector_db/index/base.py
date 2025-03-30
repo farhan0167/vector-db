@@ -8,6 +8,9 @@ class BaseIndex:
     def add(self):
         pass
     
+    def update(self):
+        pass
+    
     def remove(self):
         pass
     

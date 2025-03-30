@@ -8,7 +8,8 @@ from .library import (
 )
 
 from .documents import (
-    AddDocumentRequest
+    AddDocumentRequest,
+    ResponseDocument
 )
 
 from .chunk import (

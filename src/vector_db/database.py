@@ -15,7 +15,7 @@ class Database:
         )
         
     def get_libraries(self) -> List[Library]:
-        return [library for library in self.libraries]
+        return self.libraries
      
     def get_library(
         self, 

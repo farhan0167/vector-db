@@ -13,6 +13,9 @@ co = cohere.ClientV2(
 )
 
 def embed(texts: List[str]) -> List[List[float]]:
+  """
+  Embeds a list of texts into a list of vectors.
+  """
   response = co.embed(
       texts=texts,
       model="embed-english-v3.0",

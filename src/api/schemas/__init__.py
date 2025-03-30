@@ -3,14 +3,17 @@ from .library import (
     LibraryResponseMessage,
     IndexTypes,
     QueryLibraryRequest,
-    UpdateLibraryRequest
+    UpdateLibraryRequest,
+    ResponseLibrary
 )
 
 from .documents import (
-    AddDocumentRequest
+    AddDocumentRequest,
+    ResponseDocument
 )
 
 from .chunk import (
     AddChunkRequest,
-    UpdateChunkRequest
+    UpdateChunkRequest,
+    ResponseChunk
 )

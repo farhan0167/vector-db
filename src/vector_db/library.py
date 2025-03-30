@@ -1,7 +1,7 @@
 from typing import List, Dict, Any, Union
 from .document import Document
 from .chunk import Chunk
-from .index import VectorSearchIndex, IndexTypes, BaseIndex
+from .index import SearchIndex, IndexTypes, BaseIndex, BaseVectorSearchIndex
 from utils.index import recompute_index
 from exceptions import DuplicateError
 
@@ -14,7 +14,7 @@ class Library:
         self.name = name
         self.metadata = metadata
         self.documents: List[Document] = []
-        self.index: Union[BaseIndex, None] = None
+        self.index: Union[BaseVectorSearchIndex, None] = None
         # Document relted index
         self.__doc_name_index: Dict[str, int] = {}
         self.__doc_id_index: Dict[str, int] = {}
@@ -22,7 +22,7 @@ class Library:
         self.__chunk_id_to_doc_id: Dict[str, str] = {}
         
     def add_vector_search_index(self, index_type: IndexTypes):
-        self.index = VectorSearchIndex().initialize_index(
+        self.index = SearchIndex().initialize_index(
             index_type=index_type
         )
         

@@ -5,6 +5,11 @@ from .chunk import Chunk
 from utils.index import recompute_index
 from exceptions import DuplicateError
 from utils.embed import embed
+from .index import (
+    SearchIndex, 
+    IndexTypes, 
+    CollectionsIndex
+)
 
 class Document:
     def __init__(
@@ -16,7 +21,9 @@ class Document:
         self.name = name
         self.chunks: List[Chunk] = []
         self.metadata = metadata
-        self.__chunk_id_index: Dict[str, int] = {}
+        self.__chunk_id_index: CollectionsIndex = SearchIndex().initialize_index(
+            index_type=IndexTypes.COLLECTIONS_INDEX
+        )
         
     def __repr__(self):
         return f"""Document(
@@ -31,21 +38,21 @@ class Document:
     
     
     def get_chunk(self, chunk_id: str):
-        chunk_index = self.__chunk_id_index[chunk_id]
+        chunk_index = self.__chunk_id_index.search(chunk_id)
         return self.chunks[chunk_index]
     
     def add_chunk(self, chunk: Chunk):
-        if chunk.id in self.__chunk_id_index:
+        if chunk.id in self.__chunk_id_index.index:
             raise DuplicateError(f'Chunk with id `{chunk.id}` already exists.')
         self.chunks.append(chunk)
-        self.__chunk_id_index[chunk.id] = len(self.chunks)-1
+        self.__chunk_id_index.add(id=chunk.id, value=len(self.chunks)-1)
         
     def _update_chunk_text(
         self, 
         chunk_id: str, 
         text: str
     )-> Chunk:
-        chunk_index = self.__chunk_id_index[chunk_id]
+        chunk_index = self.__chunk_id_index.search(chunk_id)
         chunk = self.chunks[chunk_index]
         chunk.text = text
         if chunk.embedding:
@@ -53,14 +60,12 @@ class Document:
         return chunk
             
     def _remove_chunk(self, chunk_id: str):
-        chunk_index = self.__chunk_id_index[chunk_id]
+        chunk_index = self.__chunk_id_index.search(chunk_id)
         del self.chunks[chunk_index]
-        del self.__chunk_id_index[chunk_id]
-        
-        # Recompute chunk id index
-        self.__chunk_id_index = recompute_index(
+        self.__chunk_id_index.remove(
+            id=chunk_id,
             iterable=self.chunks,
-            key='id'
+            reindex_key='id'
         )
     
     def get_chunks(self):

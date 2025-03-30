@@ -58,7 +58,7 @@ class Database:
             # Update name
             library.name = new_name
             # Update library name index with new name
-            self.library_name_index[new_name] = self.library_name_index[previous_name]
+            self.library_name_index.index[new_name] = self.library_name_index.index[previous_name]
             # Remove previous name from index
             self.library_name_index.remove(
                 id=previous_name,

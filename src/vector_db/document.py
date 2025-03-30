@@ -11,6 +11,7 @@ from .index import (
 )
 
 class Document:
+    """ A document is a collection of chunks."""
     def __init__(
         self,
         name: str,

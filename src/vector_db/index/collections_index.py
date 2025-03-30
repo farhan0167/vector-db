@@ -21,6 +21,10 @@ class CollectionsIndex(BaseIndex):
     The remove operation however would mean that we need to recompute the index once an object is evited from the list.
     This is an O(n) operation. But we are okay with this since the main objective of the retrieval system is to provide
     fast retrieval/search for the user.
+    
+    Index: dict of {
+        key(some identifier, id): value(index in the list)
+    }
     """
     def __init__(self):
         self.index: Dict[str, int] = {}
@@ -29,6 +33,7 @@ class CollectionsIndex(BaseIndex):
         self,
         query: str
     ) -> int:
+        """Searching for an object's index is an O(1) operation since we have a hash map."""
         return self.index.get(query)
     
     def add(self, id: str, value: int):

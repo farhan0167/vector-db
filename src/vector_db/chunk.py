@@ -2,6 +2,7 @@ import uuid
 from typing import Dict, Any
 
 class Chunk:
+    """A chunk is a text segment of a document."""
     def __init__(
         self, 
         text: str,

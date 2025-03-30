@@ -6,6 +6,9 @@ from exceptions import DuplicateError
 from .index import SearchIndex, IndexTypes, CollectionsIndex
 
 class Database:
+    """ 
+    The database is a collection of libraries.
+    """
     def __init__(self):
         self.__lock = threading.Lock()
         self.libraries: List[Library] = []

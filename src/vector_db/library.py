@@ -11,6 +11,17 @@ from .index import (
 from exceptions import DuplicateError
 
 class Library:
+    """ 
+    A library is a collection of documents. The library acts as a controller/interface
+    for both the documents and its chunks. Any interaction on documents and chunks are 
+    handled by the library even though documents are the one's managing their chunks.
+    
+    The library stores 3 indexes. There are two indexes of type `COLLECTIONS_INDEX` that
+    index the documents by its name and id. The other index is of type `VECTOR_SEARCH_INDEX`
+    that indexes the chunks, which is used by the vector search index to do RAG stuff.
+    
+    One thing to note about Documents within a library is that it's name is unique.
+    """
     def __init__(
         self, 
         name: str,
@@ -63,6 +74,12 @@ class Library:
         self.index.add(chunks=chunks)
     
     def get_chunk(self, chunk_id: str) -> Chunk:
+        """Get a chunk from the library. This is an O(1) operation since
+        we have indexed both a chunk_id to doc_id mapping, and a doc_id to its
+        index in the document list. From there, getting the chunk is also an O(1)
+        operation since inside the document, we have a list of chunks indexed
+        by its id.
+        """
         doc_id = self.__chunk_id_to_doc_id.get(chunk_id)
         if not doc_id:
             raise KeyError(f'Chunk with id `{chunk_id}` not found. There is no document associated with this chunk.')
@@ -88,14 +105,17 @@ class Library:
         chunk_id: str, 
         text: str
     ) -> Chunk:
+        """Update the text of a chunk and update the vector search index."""
         doc_id = self.__chunk_id_to_doc_id.get(chunk_id)
         if not doc_id:
             raise KeyError(f'Chunk with id `{chunk_id}` not found. There is no document associated with this chunk.')
         doc = self.get_document(id=doc_id)
         doc._update_chunk_text(chunk_id=chunk_id, text=text)
         # TODO update vector search index
+        
     
     def remove_chunk(self, chunk_id: str):
+        """Remove a chunk from the library."""
         # Get the document the chunk is associated with
         doc_id = self.__chunk_id_to_doc_id.get(chunk_id)
         if not doc_id:
@@ -112,6 +132,7 @@ class Library:
         return self.documents
     
     def add_document(self, document: Document) -> Document:
+        """ Add a document to the library. If the document already exists, then raise an error."""
         # Check if the doc already exists
         if document.name in self.__doc_name_index.index:
             raise DuplicateError(f'Document with name `{document.name}` already exists.')
@@ -130,6 +151,7 @@ class Library:
         name: str = None,
         id: str = None
     ) -> Document:
+        """ Get a document from the library. If both name and id are provided, then raise an error. """
         if id and name:
             raise ValueError('Only one of `name` or `id` can be provided at a time.')
         if id:
@@ -142,6 +164,7 @@ class Library:
         return self.documents[self.__doc_name_index.search(name)]
         
     def remove_document(self, id: str):
+        """ Remove a document from the library. """
         if not id in self.__doc_id_index.index:
             raise KeyError(f'Document with id `{id}` does not exist.')
         

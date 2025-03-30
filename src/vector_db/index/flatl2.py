@@ -5,6 +5,12 @@ from .base import BaseIndex, BaseVectorSearchIndex
 from ..chunk import Chunk
 
 class FlatL2Index(BaseVectorSearchIndex):
+    """ 
+    The FlatL2Index is a simple and rather brute force implementation of searching within
+    a vector space. It's brute force because we're searching the entire vector space for any
+    given query. This means that the search is a O(n) operation, where n is the number of
+    chunks in library.
+    """
     def __init__(self):
         super().__init__()
         self.embeddings: List[List[float]] = []

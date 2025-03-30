@@ -3,7 +3,7 @@ from pydantic import BaseModel
 from typing import Optional
 
 class Metadata(BaseModel):
-    date_created: str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    date_created: str = "2025-01-01 00:00:00"
     
 class LibraryMetadata(Metadata):
     description: Optional[str] = None

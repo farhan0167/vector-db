@@ -61,6 +61,11 @@ Make sure you have the following installed in your system:
    minikube service vector-db
    ```
 
+## API Documentation
+
+A great way to see all the available methods and endpoints to interact with the library would be to
+navigate to `http://localhost:<port>/redoc`
+
 ## Conceptual Guide
 
 On a high level, **vector-db** can be summarized by the following diagram:
@@ -73,3 +78,45 @@ The vector database is made up of:
 - **Document**: A document represents a single piece of text (e.g., an article or report). To enable more efficient retrieval, documents are split into smaller segments called chunks. This allows the system to return only the most relevant parts, avoiding the limitations of an LLM's context window.
 - **Chunk**: Chunks are the smaller text segments derived from a document. In vector-db, each chunk is embedded individually and is the core unit returned in a retrieval query.
 - **API**: The API provides an interface for users to interact with the database, enabling operations such as storing, querying, and retrieving documents or chunks.
+
+## System Design
+
+When designing a retrival system, the system should be able to:
+- Provide accurate recommendations
+- Retrive with low latency, without sacrificing on accuracy
+
+For this project, we aim for lower search latency as an objective. Before we discuss about vector search indexes, I also want to introduce a few other indexes we'll be using to organize Libraries, Documents and Chunks. 
+
+### Non Vector Search
+
+A database holds a collection of libraries, and a library consists of a list of documents, followed by documents consisting of a list of chunks. Each object in the project stores every child object in a list. A search over a list would usually cost us a O(n) time complexity, where n being the number of child objects a parent object is holding. Therefore, we implement, what we call is a `CollectionsIndex`. Put simply, it's a hash map that maps some child object identifier to the index of the collection/list it resides in. Consider the following:
+
+```python
+
+documents = [c1, c2, c3, ..... cN]
+ index   =   0,  1,   2,........N-1
+```
+
+What a `CollectionsIndex` does is simply map:
+
+```python
+{
+   c1: 0,
+   c2: 1
+}
+```
+You could argue that I could've simply used a dictionary holding an id and the object, but this way, we can track other metadata as well. For instance in a Library, a document can be identified via both its name and id. Instead of storing two dictionaries with 2 copies of Document, we store a single Document within the list of documents, with two dictionaries storing only the identifier of interest and the index within the list where the Document is located. This way, we can perform searches over documents at O(1) time. Insertion is O(1) as well since we're assigning the index as `len(Collections)-1`. Removal, however, is O(N) since once we remove an item from the list, we'll need to recompute the entire index but this is a cost we're okay with, so long search and insertion is fast.
+
+### Vector Search
+
+When it comes to searching over a vector space, we have the following problem:
+
+Given a query vector, Q, search all the embeddings and return the k-nearest vectors. This problem can nicely be summarized by the diagram below:
+
+![flatl2](./docs/assets/flatl2.png)
+
+In this project, we call this the FlatL2 Index. What this does is, given a query, we perform a brute force search over the entire vector space via calculating the euclidean l2 distance between the query vector and all the existing vectors, and return only the K nearest neighbors to the query vector(here k is a configurable parameter set by the user).
+
+However, we can do better. If you notice in the image, the query vector, Q, is located near the top cluster, among the 3 clusters of data. Why then do we search the entire vector space? To optimize this problem, we'll do what every search algorithm does, reduce the search surface. To do this, we can do a Kmeans clustering to find K clusters. When a user does a query, we'll first compare the query vector to the K cluster means, and pick the top one, and then perform a FlatL2 search over the vectors in that cluster. 
+
+![kmeans](./docs/assets/ivf.png)

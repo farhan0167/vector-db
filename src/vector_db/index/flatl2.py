@@ -1,7 +1,7 @@
 from typing import List
 from utils.embed import embed
 from utils.knn import KNearNeighbors
-from .base import BaseIndex, BaseVectorSearchIndex
+from .base import BaseVectorSearchIndex
 from .collections_index import CollectionsIndex
 from ..chunk import Chunk
 

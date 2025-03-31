@@ -11,6 +11,13 @@ git clone https://github.com/farhan0167/vector-db.git
 cd vector-db/src/
 ```
 
+Then create a `.env` file, and paste the following:
+
+```
+COHERE_API_KEY=<cohere-api-key>
+PYTEST_DB_URI=http://localhost:8000
+```
+
 Once cloned, and within `src/`, you will have two options to spin up the database:
 - via Docker, or
 - through a standalone Kubernetes cluster.

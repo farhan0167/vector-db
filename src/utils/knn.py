@@ -23,12 +23,12 @@ class KNearNeighbors:
             dist.append(math.sqrt(pairwise_sum))
         return dist
     
-    def argsort(self, hist):
+    def argsort(self, dist):
         """Simple implementation of argsort."""
-        return sorted(range(len(hist)), key=lambda i: hist[i])
+        return sorted(range(len(dist)), key=lambda i: dist[i])
     
     def predict(self, query, k):
         """Predict the k nearest neighbors."""
-        hist = self.compute_distance(query)
-        return self.argsort(hist)[:k]
+        dist = self.compute_distance(query)
+        return self.argsort(dist)[:k]
         

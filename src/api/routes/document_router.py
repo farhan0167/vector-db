@@ -12,12 +12,7 @@ from exceptions import DuplicateError
 
 router = APIRouter()
 
-@router.get(
-    "/document", 
-    summary="Get all documents from a library", 
-    tags=["Document"],
-    response_model=List[ResponseDocument]
-)
+@router.get("/document")
 async def get_documents(library: Library = Depends(get_library)):
     """Method to get all documents from a library"""
     try:
@@ -33,12 +28,7 @@ async def get_documents(library: Library = Depends(get_library)):
         content=response
     )
 
-@router.get(
-    "/document/{doc_id}", 
-    summary="Get a document from a library", 
-    tags=["Document"],
-    response_model=ResponseDocument
-)
+@router.get("/document/{doc_id}")
 async def get_document(doc_id: str, library: Library = Depends(get_library)):
     """Method to get a document from a library by its id"""
     try:
@@ -53,12 +43,7 @@ async def get_document(doc_id: str, library: Library = Depends(get_library)):
         content=doc.dict()
     )
     
-@router.post(
-    "/document", 
-    summary="Add a document to a library", 
-    tags=["Document"],
-    response_model=ResponseDocument
-)
+@router.post("/document")
 async def add_document(request: AddDocumentRequest, db: Database = Depends(get_db)):
     """Method to add a document to a library"""
     try:
@@ -86,12 +71,7 @@ async def add_document(request: AddDocumentRequest, db: Database = Depends(get_d
     )
     
 
-@router.delete(
-    "/document/{doc_id}", 
-    summary="Remove a document a library", 
-    tags=["Document"],
-    response_model=LibraryResponseMessage
-)
+@router.delete("/document/{doc_id}")
 async def remove_document(doc_id: str, library: Library = Depends(get_library)):
     """Remove a document from a library"""
     try:

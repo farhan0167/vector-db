@@ -16,12 +16,7 @@ from exceptions import DuplicateError
 
 router = APIRouter()
 
-@router.get(
-    "/chunk", 
-    summary="Get all chunks from a library", 
-    tags=["Chunk"],
-    response_model=List[ResponseChunk]
-)
+@router.get("/chunk")
 async def get_chunks(document_id: Optional[str] = None, library: Library = Depends(get_library)):
     """Get all chunks from a library. If document_id is provided, then get all chunks from that document"""
     if document_id:
@@ -41,12 +36,7 @@ async def get_chunks(document_id: Optional[str] = None, library: Library = Depen
         content=chunks
     )
 
-@router.get(
-    "/chunk/{id}", 
-    summary="Get a chunk from a library", 
-    tags=["Chunk"],
-    response_model=ResponseChunk
-)
+@router.get("/chunk/{id}")
 async def get_chunk(id: str, library: Library = Depends(get_library)):
     """Method to get a chunk from a library by its id"""
     try:
@@ -61,13 +51,7 @@ async def get_chunk(id: str, library: Library = Depends(get_library)):
         content=chunk.dict()
     )
 
-@router.post(
-    "/chunk", 
-    summary="Add chunks to a library", 
-    tags=["Chunk"],
-    response_model=LibraryResponseMessage,
-    status_code=status.HTTP_201_CREATED
-)
+@router.post("/chunk")
 async def add_chunk(request: AddChunkRequest, db: Database = Depends(get_db)):
     """Method to add a chunk to a library"""
     try:
@@ -101,12 +85,7 @@ async def add_chunk(request: AddChunkRequest, db: Database = Depends(get_db)):
         message="Chunks added successfully"
     )
     
-@router.patch(
-    "/chunk/{id}", 
-    summary="Update a chunk text from a library", 
-    tags=["Chunk"],
-    response_model=LibraryResponseMessage
-)
+@router.patch("/chunk/{id}")
 async def update_chunk(id: str, request: UpdateChunkRequest, library: Library = Depends(get_library)):
     """Update a chunk text from a library"""
     try:
@@ -120,12 +99,7 @@ async def update_chunk(id: str, request: UpdateChunkRequest, library: Library = 
         message="Chunk updated successfully"
     )
 
-@router.delete(
-    "/chunk/{id}", 
-    summary="Remove a chunk from a library", 
-    tags=["Chunk"],
-    response_model=LibraryResponseMessage
-)
+@router.delete("/chunk/{id}")
 async def remove_chunk(id: str, library: Library = Depends(get_library)):
     """Remove a chunk from a library"""
     try:

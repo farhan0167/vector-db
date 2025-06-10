@@ -20,12 +20,7 @@ from exceptions import DuplicateError
 
 router = APIRouter()
 
-@router.get(
-    "/library", 
-    summary="Get all libraries", 
-    tags=["Library"],
-    response_model=List[ResponseLibrary]
-)
+@router.get("/library")
 async def get_libraries(db: Database = Depends(get_db)):
     """
     Retrieve all libraries from the database.
@@ -36,12 +31,7 @@ async def get_libraries(db: Database = Depends(get_db)):
         content=[library.dict() for library in libraries]
     )
 
-@router.get(
-    "/library/{name}", 
-    summary="Get a library by name.", 
-    tags=["Library"],
-    response_model=ResponseLibrary
-)
+@router.get("/library/{name}")
 async def get_library(name: str, db: Database = Depends(get_db)):
     """
     Retrieve a library by its name from the database.
@@ -58,13 +48,7 @@ async def get_library(name: str, db: Database = Depends(get_db)):
         content=library.dict()
     )
 
-@router.post(
-    "/library", 
-    summary="Add a library", 
-    tags=["Library"], 
-    response_model=LibraryResponseMessage, 
-    status_code=status.HTTP_201_CREATED
-)
+@router.post("/library")
 async def add_library(library: AddLibraryRequest, index_type: RequestIndexTypes, db: Database = Depends(get_db)):
     """Add a library to the database."""
     try:
@@ -82,12 +66,7 @@ async def add_library(library: AddLibraryRequest, index_type: RequestIndexTypes,
             message="Library added successfully"
     )
     
-@router.patch(
-    "/library", 
-    summary="Update a library", 
-    tags=["Library"],
-    response_model=LibraryResponseMessage
-)
+@router.patch("/library")
 async def update_library(request: UpdateLibraryRequest, db: Database = Depends(get_db)):
     """Update a library's name in the database."""
     try:
@@ -116,12 +95,7 @@ async def update_library(request: UpdateLibraryRequest, db: Database = Depends(g
         message="Library updated successfully"
     )
 
-@router.delete(
-    "/library/{name}", 
-    summary="Remove a library", 
-    tags=["Library"],
-    response_model=LibraryResponseMessage
-)
+@router.delete("/library/{name}")
 async def remove_library(name: str, db: Database = Depends(get_db)):
     """Remove a library from the database."""
     try:
@@ -142,12 +116,7 @@ async def remove_library(name: str, db: Database = Depends(get_db)):
 
 #-------------------Query-----------------------------------------------------------------------------
 
-@router.patch(
-    "/library/query", 
-    summary="Build the library's vector search index", 
-    tags=["Library"],
-    response_model=LibraryResponseMessage
-)
+@router.patch("/library/query")
 async def build_index(library: Library = Depends(get_library_)):
     """Build the library's vector search index. Do this only when you have added all your chunks to the library."""
     try:
@@ -161,12 +130,7 @@ async def build_index(library: Library = Depends(get_library_)):
         message="Index built successfully"
     )
 
-@router.post(
-    "/library/query", 
-    summary="Query a library", 
-    tags=["Library"],
-    response_model=List[ResponseChunk]
-)
+@router.post("/library/query")
 async def query(request: QueryLibraryRequest, db: Database = Depends(get_db)):
     """Perform a search on a library to retrieve relevant chunks."""
     try:

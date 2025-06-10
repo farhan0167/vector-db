@@ -13,7 +13,9 @@ from exceptions import DuplicateError
 router = APIRouter()
 
 @router.get("/document")
-async def get_documents(library: Library = Depends(get_library)):
+async def get_documents(
+    library: Library = Depends(get_library)
+):
     """Method to get all documents from a library"""
     try:
         docs = library.get_documents()
@@ -29,7 +31,10 @@ async def get_documents(library: Library = Depends(get_library)):
     )
 
 @router.get("/document/{doc_id}")
-async def get_document(doc_id: str, library: Library = Depends(get_library)):
+async def get_document(
+    doc_id: str, 
+    library: Library = Depends(get_library)
+):
     """Method to get a document from a library by its id"""
     try:
         doc = library.get_document(id=doc_id)
@@ -44,7 +49,10 @@ async def get_document(doc_id: str, library: Library = Depends(get_library)):
     )
     
 @router.post("/document")
-async def add_document(request: AddDocumentRequest, db: Database = Depends(get_db)):
+async def add_document(
+    request: AddDocumentRequest, 
+    db: Database = Depends(get_db)
+):
     """Method to add a document to a library"""
     try:
         library = db.get_library(name=request.library_name)
@@ -72,7 +80,10 @@ async def add_document(request: AddDocumentRequest, db: Database = Depends(get_d
     
 
 @router.delete("/document/{doc_id}")
-async def remove_document(doc_id: str, library: Library = Depends(get_library)):
+async def remove_document(
+    doc_id: str, 
+    library: Library = Depends(get_library)
+):
     """Remove a document from a library"""
     try:
         library.remove_document(id=doc_id)

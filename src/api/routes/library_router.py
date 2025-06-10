@@ -21,7 +21,9 @@ from exceptions import DuplicateError
 router = APIRouter()
 
 @router.get("/library")
-async def get_libraries(db: Database = Depends(get_db)):
+async def get_libraries(
+    db: Database = Depends(get_db)
+):
     """
     Retrieve all libraries from the database.
     """
@@ -32,7 +34,10 @@ async def get_libraries(db: Database = Depends(get_db)):
     )
 
 @router.get("/library/{name}")
-async def get_library(name: str, db: Database = Depends(get_db)):
+async def get_library(
+    name: str, 
+    db: Database = Depends(get_db)
+):
     """
     Retrieve a library by its name from the database.
     """
@@ -49,7 +54,11 @@ async def get_library(name: str, db: Database = Depends(get_db)):
     )
 
 @router.post("/library")
-async def add_library(library: AddLibraryRequest, index_type: RequestIndexTypes, db: Database = Depends(get_db)):
+async def add_library(
+    library: AddLibraryRequest, 
+    index_type: RequestIndexTypes, 
+    db: Database = Depends(get_db)
+):
     """Add a library to the database."""
     try:
         lib = db.add_library(
@@ -67,7 +76,10 @@ async def add_library(library: AddLibraryRequest, index_type: RequestIndexTypes,
     )
     
 @router.patch("/library")
-async def update_library(request: UpdateLibraryRequest, db: Database = Depends(get_db)):
+async def update_library(
+    request: UpdateLibraryRequest, 
+    db: Database = Depends(get_db)
+):
     """Update a library's name in the database."""
     try:
         db.get_library(request.library_name)
@@ -96,7 +108,10 @@ async def update_library(request: UpdateLibraryRequest, db: Database = Depends(g
     )
 
 @router.delete("/library/{name}")
-async def remove_library(name: str, db: Database = Depends(get_db)):
+async def remove_library(
+    name: str, 
+    db: Database = Depends(get_db)
+):
     """Remove a library from the database."""
     try:
         db.remove_library(name)
@@ -117,7 +132,9 @@ async def remove_library(name: str, db: Database = Depends(get_db)):
 #-------------------Query-----------------------------------------------------------------------------
 
 @router.patch("/library/query")
-async def build_index(library: Library = Depends(get_library_)):
+async def build_index(
+    library: Library = Depends(get_library_)
+):
     """Build the library's vector search index. Do this only when you have added all your chunks to the library."""
     try:
         library.build_index()
@@ -131,7 +148,10 @@ async def build_index(library: Library = Depends(get_library_)):
     )
 
 @router.post("/library/query")
-async def query(request: QueryLibraryRequest, db: Database = Depends(get_db)):
+async def query(
+    request: QueryLibraryRequest, 
+    db: Database = Depends(get_db)
+):
     """Perform a search on a library to retrieve relevant chunks."""
     try:
         library = db.get_library(name=request.library_name)

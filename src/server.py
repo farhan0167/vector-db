@@ -9,24 +9,7 @@ from api.routes import (
 
 app = FastAPI(
     title="vector-db",
-    version="0.1.0",
-    description="""
-## API Documentation for vector-db
-    """,
-    openapi_tags=[
-        {
-            "name": "Library",
-            "description": "Library related methods.",
-        },
-        {
-            "name": "Document",
-            "description": "Document related methods."
-        },
-        {
-            "name": "Chunk",
-            "description": "Chunk related methods."
-        }
-    ]
+    version="0.1.0"
 )
 
 app.include_router(library_router.router)

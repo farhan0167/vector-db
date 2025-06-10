@@ -17,7 +17,10 @@ from exceptions import DuplicateError
 router = APIRouter()
 
 @router.get("/chunk")
-async def get_chunks(document_id: Optional[str] = None, library: Library = Depends(get_library)):
+async def get_chunks(
+    document_id: Optional[str] = None, 
+    library: Library = Depends(get_library)
+):
     """Get all chunks from a library. If document_id is provided, then get all chunks from that document"""
     if document_id:
         try:
@@ -37,7 +40,10 @@ async def get_chunks(document_id: Optional[str] = None, library: Library = Depen
     )
 
 @router.get("/chunk/{id}")
-async def get_chunk(id: str, library: Library = Depends(get_library)):
+async def get_chunk(
+    id: str, 
+    library: Library = Depends(get_library)
+):
     """Method to get a chunk from a library by its id"""
     try:
         chunk = library.get_chunk(chunk_id=id)
@@ -52,7 +58,10 @@ async def get_chunk(id: str, library: Library = Depends(get_library)):
     )
 
 @router.post("/chunk")
-async def add_chunk(request: AddChunkRequest, db: Database = Depends(get_db)):
+async def add_chunk(
+    request: AddChunkRequest, 
+    db: Database = Depends(get_db)
+):
     """Method to add a chunk to a library"""
     try:
         library = db.get_library(name=request.library_name)
@@ -86,7 +95,10 @@ async def add_chunk(request: AddChunkRequest, db: Database = Depends(get_db)):
     )
     
 @router.patch("/chunk/{id}")
-async def update_chunk(id: str, request: UpdateChunkRequest, library: Library = Depends(get_library)):
+async def update_chunk(
+    id: str, request: UpdateChunkRequest, 
+    library: Library = Depends(get_library)
+):
     """Update a chunk text from a library"""
     try:
         library.update_chunk(chunk_id=id, text=request.text)
@@ -100,7 +112,10 @@ async def update_chunk(id: str, request: UpdateChunkRequest, library: Library = 
     )
 
 @router.delete("/chunk/{id}")
-async def remove_chunk(id: str, library: Library = Depends(get_library)):
+async def remove_chunk(
+    id: str, 
+    library: Library = Depends(get_library)
+):
     """Remove a chunk from a library"""
     try:
         library.remove_chunk(chunk_id=id)

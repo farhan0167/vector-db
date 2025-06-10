@@ -14,9 +14,9 @@ from api.schemas import (
 )
 from exceptions import DuplicateError
 
-router = APIRouter()
+router = APIRouter(prefix="/chunk")
 
-@router.get("/chunk")
+@router.get("/")
 async def get_chunks(
     document_id: Optional[str] = None, 
     library: Library = Depends(get_library)
@@ -39,7 +39,7 @@ async def get_chunks(
         content=chunks
     )
 
-@router.get("/chunk/{id}")
+@router.get("/{id}")
 async def get_chunk(
     id: str, 
     library: Library = Depends(get_library)
@@ -57,7 +57,7 @@ async def get_chunk(
         content=chunk.dict()
     )
 
-@router.post("/chunk")
+@router.post("/")
 async def add_chunk(
     request: AddChunkRequest, 
     db: Database = Depends(get_db)
@@ -94,7 +94,7 @@ async def add_chunk(
         message="Chunks added successfully"
     )
     
-@router.patch("/chunk/{id}")
+@router.patch("/{id}")
 async def update_chunk(
     id: str, request: UpdateChunkRequest, 
     library: Library = Depends(get_library)
@@ -111,7 +111,7 @@ async def update_chunk(
         message="Chunk updated successfully"
     )
 
-@router.delete("/chunk/{id}")
+@router.delete("/{id}")
 async def remove_chunk(
     id: str, 
     library: Library = Depends(get_library)

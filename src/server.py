@@ -12,6 +12,6 @@ app = FastAPI(
     version="0.1.0"
 )
 
-app.include_router(library_router.router)
-app.include_router(document_router.router)
-app.include_router(chunk_router.router)
+app.include_router(library_router.router, prefix="/api")
+app.include_router(document_router.router, prefix="/api")
+app.include_router(chunk_router.router, prefix="/api")

@@ -10,9 +10,9 @@ from api.schemas import AddDocumentRequest, ResponseDocument, LibraryResponseMes
 from vector_db import Library, Document, Database
 from exceptions import DuplicateError
 
-router = APIRouter()
+router = APIRouter(prefix="/document")
 
-@router.get("/document")
+@router.get("/")
 async def get_documents(
     library: Library = Depends(get_library)
 ):
@@ -30,7 +30,7 @@ async def get_documents(
         content=response
     )
 
-@router.get("/document/{doc_id}")
+@router.get("/{doc_id}")
 async def get_document(
     doc_id: str, 
     library: Library = Depends(get_library)
@@ -48,7 +48,7 @@ async def get_document(
         content=doc.dict()
     )
     
-@router.post("/document")
+@router.post("/")
 async def add_document(
     request: AddDocumentRequest, 
     db: Database = Depends(get_db)
@@ -79,7 +79,7 @@ async def add_document(
     )
     
 
-@router.delete("/document/{doc_id}")
+@router.delete("/{doc_id}")
 async def remove_document(
     doc_id: str, 
     library: Library = Depends(get_library)

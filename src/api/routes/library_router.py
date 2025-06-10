@@ -18,9 +18,9 @@ from api.schemas import (
 from vector_db import Database, Library
 from exceptions import DuplicateError
 
-router = APIRouter()
+router = APIRouter(prefix="/library")
 
-@router.get("/library")
+@router.get("/")
 async def get_libraries(
     db: Database = Depends(get_db)
 ):
@@ -33,7 +33,7 @@ async def get_libraries(
         content=[library.dict() for library in libraries]
     )
 
-@router.get("/library/{name}")
+@router.get("/{name}")
 async def get_library(
     name: str, 
     db: Database = Depends(get_db)
@@ -53,7 +53,7 @@ async def get_library(
         content=library.dict()
     )
 
-@router.post("/library")
+@router.post("/")
 async def add_library(
     library: AddLibraryRequest, 
     index_type: RequestIndexTypes, 
@@ -75,7 +75,7 @@ async def add_library(
             message="Library added successfully"
     )
     
-@router.patch("/library")
+@router.patch("/")
 async def update_library(
     request: UpdateLibraryRequest, 
     db: Database = Depends(get_db)
@@ -107,7 +107,7 @@ async def update_library(
         message="Library updated successfully"
     )
 
-@router.delete("/library/{name}")
+@router.delete("/{name}")
 async def remove_library(
     name: str, 
     db: Database = Depends(get_db)
@@ -131,7 +131,7 @@ async def remove_library(
 
 #-------------------Query-----------------------------------------------------------------------------
 
-@router.patch("/library/query")
+@router.patch("/query")
 async def build_index(
     library: Library = Depends(get_library_)
 ):
@@ -147,7 +147,7 @@ async def build_index(
         message="Index built successfully"
     )
 
-@router.post("/library/query")
+@router.post("/query")
 async def query(
     request: QueryLibraryRequest, 
     db: Database = Depends(get_db)

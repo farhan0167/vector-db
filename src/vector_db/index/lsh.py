@@ -43,7 +43,7 @@ class LSHIndex(BaseVectorSearchIndex):
             key = self.__hash(chunk.embedding, self.hyperplanes)
             if key not in self.buckets:
                 self.buckets[key] = []
-            self.buckets[key].append(chunk_index)
+            self.buckets[key].append(chunk.id)
             
     def search(self, query, k):
         # embed the query
@@ -59,15 +59,21 @@ class LSHIndex(BaseVectorSearchIndex):
             n_closest_keys = sorted(all_keys, key=lambda k: self.__hamming_distance(key, k))[:n_probe]
             for closest_key in n_closest_keys:
                 search_space.extend(self.buckets[closest_key])
-        # Tuple to store the embedding and chunk index
-        embeddings_idx = [(self.embeddings[i], i) for i in search_space]
+        # Tuple to store the embedding and chunk id
+        embeddings_idx = [
+            ( self.embeddings[ self.chunks_index.search(chunk_id) ], chunk_id ) 
+            for chunk_id in search_space
+        ]
         # Get the k nearest neighbors
         knn_engine = KNearNeighbors().fit([embedding for embedding, _ in embeddings_idx])
         neighbors = knn_engine.predict(query_embedding, k)
         # Get the chunks
         chunks = []
         for neighbor in neighbors:
-            chunks.append(self.chunks[ embeddings_idx[neighbor][1] ])
+            chunk_id = embeddings_idx[neighbor][1]
+            chunks.append(
+                self.chunks[ self.chunks_index.search(chunk_id) ]
+            )
         return chunks
         
         

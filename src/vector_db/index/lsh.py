@@ -31,9 +31,6 @@ class LSHIndex(BaseVectorSearchIndex):
     def __hamming_distance(self, s1: str, s2: str):
         return sum(x != y for x, y in zip(s1, s2))
     
-    def __get_next_closest_key(self, key: str, existing_keys: List[str]):
-        return min(existing_keys, key=lambda k: self.__hamming_distance(k, key))
-    
     def add(self, chunks: List[Chunk]):
         for chunk in chunks:
             self.chunks.append(chunk)
@@ -56,9 +53,12 @@ class LSHIndex(BaseVectorSearchIndex):
         # Check to see if the key exists in the buckets
         search_space = self.buckets.get(key, [])
         if not search_space:
-            next_closest_key = self.__get_next_closest_key(key, self.buckets.keys())
-            search_space = self.buckets[next_closest_key]
-            
+            # If no match was found, get the two nearest buckets
+            n_probe = 2
+            all_keys = list(self.buckets.keys())
+            n_closest_keys = sorted(all_keys, key=lambda k: self.__hamming_distance(key, k))[:n_probe]
+            for closest_key in n_closest_keys:
+                search_space.extend(self.buckets[closest_key])
         # Tuple to store the embedding and chunk index
         embeddings_idx = [(self.embeddings[i], i) for i in search_space]
         # Get the k nearest neighbors

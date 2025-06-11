@@ -76,5 +76,31 @@ class LSHIndex(BaseVectorSearchIndex):
             )
         return chunks
         
+    def remove(self, chunk_id: str):
+        chunk_index = self.chunks_index.search(chunk_id)
+        del self.chunks[chunk_index]
+        self.chunks_index.remove(
+            id=chunk_id, 
+            iterable=self.chunks, 
+            reindex_key='id'
+        )
+        # Remove chunk from LSH Index
+        key = self.__hash(self.embeddings[chunk_index], self.hyperplanes)
+        self.buckets[key].remove(chunk_id)
+        del self.embeddings[chunk_index]
+        
+    def update(self, chunk_id: str, text: str):
+        chunk_index = self.chunks_index.search(chunk_id)
+        # Remove chunk from LSH Index
+        key = self.__hash(self.embeddings[chunk_index], self.hyperplanes)
+        self.buckets[key].remove(chunk_id)
+        # Update chunk
+        self.chunks[chunk_index].text = text
+        self.embeddings[chunk_index] = embed([text])[0]
+        # Add chunk to LSH Index
+        key = self.__hash(self.embeddings[chunk_index], self.hyperplanes)
+        if key not in self.buckets:
+            self.buckets[key] = []
+        self.buckets[key].append(chunk_id)
         
 

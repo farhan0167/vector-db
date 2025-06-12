@@ -124,6 +124,8 @@ Given a query vector, Q, search all the embeddings and return the k-nearest vect
 
 In this project, we call this the FlatL2 Index. What this does is, given a query, we perform a brute force search over the entire vector space via calculating the euclidean l2 distance between the query vector and all the existing vectors, and return only the K nearest neighbors to the query vector(here k is a configurable parameter set by the user).
 
-However, we can do better. If you notice in the image, the query vector, Q, is located near the top cluster, among the 3 clusters of data. Why then do we search the entire vector space? To optimize this problem, we'll do what every search algorithm does, reduce the search surface. To do this, we can do a Kmeans clustering to find K clusters. When a user does a query, we'll first compare the query vector to the K cluster means, and pick the top one, and then perform a FlatL2 search over the vectors in that cluster. 
+However, we can do better. Instead of searching the entire vector space, we can use Locality Sensitive Hashing (LSH) to reduce the search space. You can learn more about LSH Index [here](https://www.pinecone.io/learn/series/faiss/locality-sensitive-hashing-random-projection/). The idea is simple, we hash similar vectos into the same bucket.
 
-![kmeans](./docs/assets/ivf.png)
+![lsh_hash_concept](./docs/assets/lsh_hash_concept.png)
+
+Therefore in order to hash similar vectors in the same bucket, we need a hash function that will maximize the collisions, and we can do that by taking a dense vector, such as an embedding, and compress it down to a binary string. Therefore, in the future, when a query comes in, we use the same hash function to compute a binary string and look up the binary string key in the hash table. If that key exists, the values associated become the search space and if the key doesn't exist, we use the N nearest buckets(computed using the hamming distance between two binary strings) to get the search space. 

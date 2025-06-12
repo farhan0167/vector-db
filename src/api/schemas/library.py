@@ -5,7 +5,7 @@ from api.schemas.metadata import LibraryMetadata
 
 class IndexTypes(str, Enum):
     FlatL2 = 'flatl2'
-    IVFIndex = 'ivf'
+    LSH = 'lsh'
 
 class AddLibraryRequest(BaseModel):
     name: str

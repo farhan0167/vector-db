@@ -14,15 +14,13 @@ from api.schemas import (
 )
 from exceptions import DuplicateError
 
-router = APIRouter()
+router = APIRouter(prefix="/chunk")
 
-@router.get(
-    "/chunk", 
-    summary="Get all chunks from a library", 
-    tags=["Chunk"],
-    response_model=List[ResponseChunk]
-)
-async def get_chunks(document_id: Optional[str] = None, library: Library = Depends(get_library)):
+@router.get("/")
+async def get_chunks(
+    document_id: Optional[str] = None, 
+    library: Library = Depends(get_library)
+):
     """Get all chunks from a library. If document_id is provided, then get all chunks from that document"""
     if document_id:
         try:
@@ -41,13 +39,11 @@ async def get_chunks(document_id: Optional[str] = None, library: Library = Depen
         content=chunks
     )
 
-@router.get(
-    "/chunk/{id}", 
-    summary="Get a chunk from a library", 
-    tags=["Chunk"],
-    response_model=ResponseChunk
-)
-async def get_chunk(id: str, library: Library = Depends(get_library)):
+@router.get("/{id}")
+async def get_chunk(
+    id: str, 
+    library: Library = Depends(get_library)
+):
     """Method to get a chunk from a library by its id"""
     try:
         chunk = library.get_chunk(chunk_id=id)
@@ -61,14 +57,11 @@ async def get_chunk(id: str, library: Library = Depends(get_library)):
         content=chunk.dict()
     )
 
-@router.post(
-    "/chunk", 
-    summary="Add chunks to a library", 
-    tags=["Chunk"],
-    response_model=LibraryResponseMessage,
-    status_code=status.HTTP_201_CREATED
-)
-async def add_chunk(request: AddChunkRequest, db: Database = Depends(get_db)):
+@router.post("/")
+async def add_chunk(
+    request: AddChunkRequest, 
+    db: Database = Depends(get_db)
+):
     """Method to add a chunk to a library"""
     try:
         library = db.get_library(name=request.library_name)
@@ -101,13 +94,11 @@ async def add_chunk(request: AddChunkRequest, db: Database = Depends(get_db)):
         message="Chunks added successfully"
     )
     
-@router.patch(
-    "/chunk/{id}", 
-    summary="Update a chunk text from a library", 
-    tags=["Chunk"],
-    response_model=LibraryResponseMessage
-)
-async def update_chunk(id: str, request: UpdateChunkRequest, library: Library = Depends(get_library)):
+@router.patch("/{id}")
+async def update_chunk(
+    id: str, request: UpdateChunkRequest, 
+    library: Library = Depends(get_library)
+):
     """Update a chunk text from a library"""
     try:
         library.update_chunk(chunk_id=id, text=request.text)
@@ -120,13 +111,11 @@ async def update_chunk(id: str, request: UpdateChunkRequest, library: Library = 
         message="Chunk updated successfully"
     )
 
-@router.delete(
-    "/chunk/{id}", 
-    summary="Remove a chunk from a library", 
-    tags=["Chunk"],
-    response_model=LibraryResponseMessage
-)
-async def remove_chunk(id: str, library: Library = Depends(get_library)):
+@router.delete("/{id}")
+async def remove_chunk(
+    id: str, 
+    library: Library = Depends(get_library)
+):
     """Remove a chunk from a library"""
     try:
         library.remove_chunk(chunk_id=id)
